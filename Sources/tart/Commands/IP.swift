@@ -31,6 +31,19 @@ struct IP: AsyncParsableCommand {
     let vmConfig = try VMConfig.init(fromURL: vmDir.configURL)
     let vmMACAddress = MACAddress(fromString: vmConfig.macAddress.string)!
 
+    // VMs started with --net-vmnet have a persisted VmnetConfig on disk; for those, use
+    // the priority resolution strategy (DHCP reservation -> vmnet runtime lookup ->
+    // legacy fallback) instead of a single resolver, since a reservation or the vmnet
+    // runtime can usually answer instantly without waiting on the legacy resolvers at all.
+    // VMs that were never run with vmnet have no such file, so this is a no-op for them
+    // and they fall through to the exact pre-existing behavior below.
+    if let vmnetConfig = try VmnetPersistence.load(from: vmDir.vmnetConfigURL) {
+      if let ip = try await resolveVmnetIP(vmMACAddress, vmDir: vmDir, vmnetConfig: vmnetConfig) {
+        print(ip)
+        return
+      }
+    }
+
     guard let ip = try await IP.resolveIP(vmMACAddress, resolutionStrategy: resolver, secondsToWait: wait, controlSocketURL: vmDir.controlSocketURL) else {
       var message = "no IP address found"
 
@@ -48,6 +61,46 @@ struct IP: AsyncParsableCommand {
     }
 
     print(ip)
+  }
+
+  /// Runs the vmnet IP resolution priority for up to `wait` seconds, returning the
+  /// resolved address (and recording it in the shared state store for the policy
+  /// integration hooks) or throwing a diagnostics-rich `RuntimeError` if nothing was
+  /// found within the deadline.
+  private func resolveVmnetIP(_ vmMACAddress: MACAddress, vmDir: VMDirectory, vmnetConfig: VmnetConfig) async throws -> IPv4Address? {
+    let vmnetIPResolver = VmnetIPResolver()
+    let waitUntil = Calendar.current.date(byAdding: .second, value: Int(wait), to: Date.now)!
+    var lastOutcome: IPResolutionOutcome?
+
+    repeat {
+      let runtimeState = await VmnetStateStore.shared.runtimeState(for: vmDir.name)
+      let outcome = try await vmnetIPResolver.resolve(
+        macAddress: vmMACAddress,
+        config: vmnetConfig,
+        runtimeState: runtimeState,
+        legacyStrategy: resolver,
+        controlSocketURL: vmDir.controlSocketURL
+      )
+      lastOutcome = outcome
+
+      if let address = outcome.address {
+        await VmnetStateStore.shared.recordResolvedIP(vmName: vmDir.name, ipAddress: "\(address)")
+        return address
+      }
+
+      try await Task.sleep(nanoseconds: 1_000_000_000)
+    } while Date.now < waitUntil
+
+    var message = "no IP address found"
+    if try !vmDir.running() {
+      message += ", is your VM running?"
+    }
+    if let lastOutcome = lastOutcome {
+      let bundle = DiagnosticsBundle(vmName: vmDir.name, networkMode: .vmnet, vmnetConfig: vmnetConfig, ipResolutionAttempts: lastOutcome.attempts)
+      message += "\n\n" + VmnetDiagnostics.summarize(bundle)
+    }
+
+    throw RuntimeError.NoIPAddressFound(message)
   }
 
   static public func resolveIP(_ vmMACAddress: MACAddress, resolutionStrategy: IPResolutionStrategy = .dhcp, secondsToWait: UInt16 = 0, controlSocketURL: URL? = nil) async throws -> IPv4Address? {
