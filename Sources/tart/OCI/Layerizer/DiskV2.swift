@@ -2,6 +2,7 @@ import Foundation
 import Compression
 import System
 import Retry
+import TartCore
 
 class DiskV2: Disk {
   private static let bufferSizeBytes = 4 * 1024 * 1024

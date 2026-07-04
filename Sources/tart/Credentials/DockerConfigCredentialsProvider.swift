@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 class DockerConfigCredentialsProvider: CredentialsProvider {
   let userFriendlyName = "Docker configuration credentials provider"

@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 protocol Disk {
   static func push(diskURL: URL, registry: Registry, chunkSizeMb: Int, concurrency: UInt, progress: Progress) async throws -> [OCIManifestLayer]

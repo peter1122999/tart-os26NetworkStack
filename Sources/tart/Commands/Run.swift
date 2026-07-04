@@ -6,6 +6,7 @@ import SwiftUI
 import Virtualization
 import OpenTelemetryApi
 import System
+import TartCore
 
 var vm: VM?
 

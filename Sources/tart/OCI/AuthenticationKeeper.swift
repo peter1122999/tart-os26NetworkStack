@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 actor AuthenticationKeeper {
   var authentication: Authentication? = nil

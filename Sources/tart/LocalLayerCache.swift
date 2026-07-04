@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 struct LocalLayerCache {
   struct DigestInfo {

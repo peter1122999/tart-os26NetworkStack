@@ -1,5 +1,6 @@
 import GRPC
 import NIOPosix
+import TartCore
 
 /// Connects to a guest agent's gRPC endpoint over a VM's control socket, runs
 /// `body` with the resulting channel, and closes the channel afterwards on both

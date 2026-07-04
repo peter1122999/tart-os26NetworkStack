@@ -1,6 +1,7 @@
 import Foundation
 import Virtualization
 import Dynamic
+import TartCore
 
 // Kudos to @saagarjha's VirtualApple for finding about _VZVirtualMachineStartOptions
 

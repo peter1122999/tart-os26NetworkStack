@@ -1,6 +1,7 @@
 import Foundation
 import Dynamic
 import Virtualization
+import TartCore
 
 class FullFledgedVNC: VNC {
   let password: String

@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 enum CredentialsProviderError: Error {
   case Failed(message: String)

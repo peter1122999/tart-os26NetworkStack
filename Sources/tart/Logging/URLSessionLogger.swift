@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 public class URLSessionLogger: NSObject, URLSessionTaskDelegate {
   let renderer: Logger

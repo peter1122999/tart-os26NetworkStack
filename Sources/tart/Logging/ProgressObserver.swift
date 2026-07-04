@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 public class ProgressObserver: NSObject {
   @objc var progressToObserve: Progress

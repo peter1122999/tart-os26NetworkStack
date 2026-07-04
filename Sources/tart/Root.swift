@@ -4,6 +4,7 @@ import Foundation
 import OpenTelemetryApi
 import OpenTelemetrySdk
 import OpenTelemetryProtocolExporterHttp
+import TartCore
 
 @main
 struct Root: AsyncParsableCommand {

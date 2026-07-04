@@ -1,6 +1,7 @@
 import ArgumentParser
 import Foundation
 import SystemConfiguration
+import TartCore
 
 struct Clone: AsyncParsableCommand {
   static var configuration = CommandConfiguration(

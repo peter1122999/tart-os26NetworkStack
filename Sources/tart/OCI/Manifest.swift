@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 // OCI manifest and OCI config media types
 let ociManifestMediaType = "application/vnd.oci.image.manifest.v1+json"

@@ -1,5 +1,6 @@
 import Foundation
 import Algorithms
+import TartCore
 
 enum RegistryError: Error {
   case UnexpectedHTTPStatusCode(when: String, code: Int, details: String = "")

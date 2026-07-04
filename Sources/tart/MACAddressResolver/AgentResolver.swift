@@ -3,6 +3,7 @@ import Network
 import GRPC
 import Cirruslabs_TartGuestAgent_Apple_Swift
 import Cirruslabs_TartGuestAgent_Grpc_Swift
+import TartCore
 
 class AgentResolver {
   static func ResolveIP(_ controlSocketPath: String) async throws -> IPv4Address? {

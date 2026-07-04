@@ -2,11 +2,16 @@ import ArgumentParser
 import Foundation
 import Network
 import SystemConfiguration
+import TartCore
 
-enum IPResolutionStrategy: String, ExpressibleByArgument, CaseIterable {
-  case dhcp, arp, agent
-
-  private(set) static var allValueStrings: [String] = Self.allCases.map { "\($0)"}
+/// Supplies the "tart ip" resolvers (dhcpd leases file / ARP / guest agent) to
+/// `VmnetIPResolver`'s tier 3 fallback. Lives here (rather than in TartCore) because it
+/// calls `IP.resolveIP`, which is CLI-specific and depends on this executable's own
+/// `Leases`/`AgentResolver` machinery.
+struct DefaultLegacyIPResolver: LegacyIPResolving {
+  func resolve(_ macAddress: MACAddress, strategy: IPResolutionStrategy, secondsToWait: UInt16, controlSocketURL: URL?) async throws -> IPv4Address? {
+    try await IP.resolveIP(macAddress, resolutionStrategy: strategy, secondsToWait: secondsToWait, controlSocketURL: controlSocketURL)
+  }
 }
 
 struct IP: AsyncParsableCommand {
@@ -68,7 +73,7 @@ struct IP: AsyncParsableCommand {
   /// integration hooks) or throwing a diagnostics-rich `RuntimeError` if nothing was
   /// found within the deadline.
   private func resolveVmnetIP(_ vmMACAddress: MACAddress, vmDir: VMDirectory, vmnetConfig: VmnetConfig) async throws -> IPv4Address? {
-    let vmnetIPResolver = VmnetIPResolver()
+    let vmnetIPResolver = VmnetIPResolver(legacyResolver: DefaultLegacyIPResolver())
     let waitUntil = Calendar.current.date(byAdding: .second, value: Int(wait), to: Date.now)!
     var lastOutcome: IPResolutionOutcome?
 

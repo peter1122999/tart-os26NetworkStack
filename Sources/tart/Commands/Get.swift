@@ -1,5 +1,6 @@
 import ArgumentParser
 import Foundation
+import TartCore
 
 fileprivate struct VMInfo: Encodable {
   let OS: OS

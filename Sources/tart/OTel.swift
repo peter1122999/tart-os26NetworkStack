@@ -3,6 +3,7 @@ import OpenTelemetryApi
 import OpenTelemetrySdk
 import OpenTelemetryProtocolExporterHttp
 import ResourceExtension
+import TartCore
 
 class OTel {
   let tracerProvider: TracerProviderSdk?

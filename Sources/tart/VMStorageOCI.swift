@@ -1,6 +1,7 @@
 import Foundation
 import OpenTelemetryApi
 import Retry
+import TartCore
 
 class VMStorageOCI: PrunableStorage {
   let baseURL: URL

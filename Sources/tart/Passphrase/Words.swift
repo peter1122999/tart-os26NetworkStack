@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 // https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt
 let passphrases = [

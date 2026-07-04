@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 class EnvironmentCredentialsProvider: CredentialsProvider {
   let userFriendlyName = "environment variable credentials provider"

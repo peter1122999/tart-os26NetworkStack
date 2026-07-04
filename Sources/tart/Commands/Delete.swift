@@ -1,6 +1,7 @@
 import ArgumentParser
 import Dispatch
 import SwiftUI
+import TartCore
 
 struct Delete: AsyncParsableCommand {
   static var configuration = CommandConfiguration(abstract: "Delete a VM")

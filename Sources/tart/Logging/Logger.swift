@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 public protocol Logger {
   func appendNewLine(_ line: String) -> Void

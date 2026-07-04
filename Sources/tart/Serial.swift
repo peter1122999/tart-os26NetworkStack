@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 func createPTY() -> Int32 {
   var tty_fd: Int32 = -1

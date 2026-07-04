@@ -1,5 +1,6 @@
 import Foundation
 import System
+import TartCore
 
 struct State {
   fileprivate let termios: termios

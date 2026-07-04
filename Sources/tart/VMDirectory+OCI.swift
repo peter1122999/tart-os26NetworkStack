@@ -1,6 +1,7 @@
 import Compression
 import Foundation
 import OpenTelemetryApi
+import TartCore
 
 let legacyDiskV1MediaType = "application/vnd.cirruslabs.tart.disk.v1"
 

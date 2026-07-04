@@ -3,6 +3,7 @@ import Dispatch
 import OpenTelemetryApi
 import SwiftUI
 import SwiftDate
+import TartCore
 
 struct Prune: AsyncParsableCommand {
   static var configuration = CommandConfiguration(abstract: "Prune OCI and IPSW caches or local VMs")

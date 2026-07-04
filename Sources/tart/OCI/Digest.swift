@@ -1,5 +1,6 @@
 import Foundation
 import CryptoKit
+import TartCore
 
 enum DigestError: Error {
   case InvalidOffset

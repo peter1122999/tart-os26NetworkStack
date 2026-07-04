@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 // WWW-Authenticate header parser based on details from RFCs[1][2]
 ///

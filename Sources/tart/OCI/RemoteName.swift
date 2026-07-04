@@ -1,5 +1,6 @@
 import Foundation
 import Antlr4
+import TartCore
 
 struct Reference: Comparable, Hashable, CustomStringConvertible {
   enum ReferenceType: Comparable {

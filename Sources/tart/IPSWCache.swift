@@ -1,5 +1,6 @@
 import Foundation
 import Virtualization
+import TartCore
 
 class IPSWCache: PrunableStorage {
   let baseURL: URL

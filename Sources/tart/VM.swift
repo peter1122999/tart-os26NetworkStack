@@ -1,6 +1,7 @@
 import Foundation
 import Virtualization
 import Semaphore
+import TartCore
 
 struct UnsupportedRestoreImageError: Error {
 }

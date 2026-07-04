@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 protocol Authentication {
   func header() -> (String, String)

@@ -1,6 +1,7 @@
 import Foundation
 import Semaphore
 import Virtualization
+import TartCore
 
 class NetworkBridged: Network {
   let interfaces: [VZBridgedNetworkInterface]

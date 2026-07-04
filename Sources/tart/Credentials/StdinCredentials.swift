@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 enum StdinCredentialsError: Error {
   case CredentialRequired(which: String)

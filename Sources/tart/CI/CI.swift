@@ -1,3 +1,4 @@
+import TartCore
 struct CI {
   private static let rawVersion = "${CIRRUS_TAG}"
 

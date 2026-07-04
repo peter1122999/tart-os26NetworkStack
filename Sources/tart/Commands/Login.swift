@@ -1,6 +1,7 @@
 import ArgumentParser
 import Dispatch
 import SwiftUI
+import TartCore
 
 struct Login: AsyncParsableCommand {
   static var configuration = CommandConfiguration(abstract: "Login to a registry")

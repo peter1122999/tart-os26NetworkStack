@@ -1,5 +1,6 @@
 import System
 import AppleArchive
+import TartCore
 
 fileprivate let permissions = FilePermissions(rawValue: 0o644)
 

@@ -2,6 +2,7 @@ import ArgumentParser
 import Foundation
 import GRPC
 import Cirruslabs_TartGuestAgent_Grpc_Swift
+import TartCore
 
 struct ExecCustomExitCodeError: Error {
   let exitCode: Int32

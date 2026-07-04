@@ -1,5 +1,6 @@
 import Virtualization
 import Semaphore
+import TartCore
 
 protocol Network {
   func attachments() -> [VZNetworkDeviceAttachment]

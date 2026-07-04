@@ -1,5 +1,6 @@
 import Foundation
 import Network
+import TartCore
 
 enum LeasesError: Error {
   case UnexpectedFormat(name: String = "unexpected DHCPD leases file format", message: String, line: Int)

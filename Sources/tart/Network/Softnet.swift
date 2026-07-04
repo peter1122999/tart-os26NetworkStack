@@ -3,6 +3,7 @@ import Foundation
 import Semaphore
 import System
 import Virtualization
+import TartCore
 
 enum SoftnetError: Error {
   case InitializationFailed(why: String)

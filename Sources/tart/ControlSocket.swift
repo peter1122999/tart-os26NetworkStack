@@ -3,6 +3,7 @@ import Network
 import os.log
 import NIO
 import NIOPosix
+import TartCore
 
 @available(macOS 14, *)
 class ControlSocket {

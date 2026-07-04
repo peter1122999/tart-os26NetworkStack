@@ -1,6 +1,7 @@
 import ArgumentParser
 import Foundation
 import TextTable
+import TartCore
 
 enum Format: String, ExpressibleByArgument, CaseIterable {
   case text, json

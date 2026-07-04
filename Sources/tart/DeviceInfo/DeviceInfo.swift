@@ -1,5 +1,6 @@
 import Foundation
 import Sysctl
+import TartCore
 
 class DeviceInfo {
   private static var osMemoized: String? = nil

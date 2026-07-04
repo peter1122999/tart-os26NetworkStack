@@ -30,7 +30,12 @@ let package = Package(
 
   ],
   targets: [
+    .target(name: "TartCore", dependencies: [
+      .product(name: "ArgumentParser", package: "swift-argument-parser"),
+      .product(name: "XAttr", package: "swift-xattr"),
+    ]),
     .executableTarget(name: "tart", dependencies: [
+      "TartCore",
       .product(name: "Algorithms", package: "swift-algorithms"),
       .product(name: "ArgumentParser", package: "swift-argument-parser"),
       .product(name: "Dynamic", package: "Dynamic"),
@@ -57,6 +62,7 @@ let package = Package(
       "OCI/Reference/Generated/ReferenceLexer.interp",
       "OCI/Reference/Generated/ReferenceLexer.tokens",
     ]),
-    .testTarget(name: "TartTests", dependencies: ["tart"])
+    .testTarget(name: "TartTests", dependencies: ["tart", "TartCore"]),
+    .executableTarget(name: "TartVmnetManager", dependencies: ["TartCore"])
   ]
 )

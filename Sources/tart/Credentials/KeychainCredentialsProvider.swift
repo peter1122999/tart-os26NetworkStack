@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 class KeychainCredentialsProvider: CredentialsProvider {
   let userFriendlyName = "Keychain credentials provider"

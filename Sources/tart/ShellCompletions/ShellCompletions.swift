@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 fileprivate func normalizeName(_ name: String) -> String {
   // Colons are misinterpreted by Zsh completion

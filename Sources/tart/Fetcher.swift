@@ -1,4 +1,5 @@
 import Foundation
+import TartCore
 
 fileprivate var urlSession: URLSession = {
   let config = URLSessionConfiguration.default
