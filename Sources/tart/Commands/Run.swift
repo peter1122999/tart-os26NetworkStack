@@ -243,6 +243,41 @@ struct Run: AsyncParsableCommand {
   @Flag(help: ArgumentHelp("Restrict network access to the host-only network"))
   var netHost: Bool = false
 
+  @Flag(help: ArgumentHelp("Use a custom vmnet network topology instead of the default shared (NAT) networking",
+                           discussion: """
+                           Backed by VZVmnetNetworkDeviceAttachment and the vmnet framework's custom network topology
+                           APIs (subnet selection, DHCP reservations, NAT/DNS toggles). Requires the host to be running
+                           macOS 26 or newer.
+
+                           See also --net-vmnet-subnet, --net-vmnet-reserve, --net-vmnet-no-dhcp, --net-vmnet-no-nat,
+                           --net-vmnet-no-dns and --net-vmnet-bridge, all of which imply --net-vmnet.
+                           """))
+  var netVmnet: Bool = false
+
+  @Option(help: ArgumentHelp("IPv4 CIDR block for the vmnet subnet (e.g. --net-vmnet-subnet=192.168.64.0/24)",
+                             discussion: "When omitted, vmnet automatically picks a /24 under 192.168.0.0/16.",
+                             valueName: "CIDR"))
+  var netVmnetSubnet: String?
+
+  @Flag(help: "Disable the DHCP server on the vmnet network")
+  var netVmnetNoDHCP: Bool = false
+
+  @Flag(help: "Disable NAT (egress to the Internet/host) on the vmnet network")
+  var netVmnetNoNAT: Bool = false
+
+  @Flag(help: "Disable the DNS proxy on the vmnet network")
+  var netVmnetNoDNS: Bool = false
+
+  @Option(help: ArgumentHelp("Bridge the vmnet network onto a physical interface (e.g. --net-vmnet-bridge=en0)",
+                             valueName: "interface name"))
+  var netVmnetBridge: String?
+
+  @Option(help: ArgumentHelp("""
+  Reserve a DHCP address for a MAC address on the vmnet network, in the form mac=ip \
+  (e.g. --net-vmnet-reserve=52:54:00:11:22:33=192.168.64.10). Can be specified multiple times.
+  """, valueName: "mac=ip"))
+  var netVmnetReserve: [String] = []
+
   @Option(help: ArgumentHelp("Set the root disk options (e.g. --root-disk-opts=\"ro\" or --root-disk-opts=\"caching=cached,sync=none\")",
                              discussion: """
                              Options are comma-separated and are as follows:
@@ -317,14 +352,29 @@ struct Run: AsyncParsableCommand {
       netSoftnet = true
     }
 
+    // Automatically enable --net-vmnet when any of its related options are specified
+    if netVmnetSubnet != nil || netVmnetNoDHCP || netVmnetNoNAT || netVmnetNoDNS
+      || netVmnetBridge != nil || !netVmnetReserve.isEmpty {
+      netVmnet = true
+    }
+
     // Check that no more than one network option is specified
     var netFlags = 0
     if netBridged.count > 0 { netFlags += 1 }
     if netSoftnet { netFlags += 1 }
     if netHost { netFlags += 1 }
+    if netVmnet { netFlags += 1 }
 
     if netFlags > 1 {
-      throw ValidationError("--net-bridged, --net-softnet and --net-host are mutually exclusive")
+      throw ValidationError("--net-bridged, --net-softnet, --net-host and --net-vmnet are mutually exclusive")
+    }
+
+    if netVmnet {
+      let config = try parsedVmnetConfig()!
+      let result = VmnetValidator.validate(config)
+      if let firstError = result.errors.first {
+        throw ValidationError(firstError.description)
+      }
     }
 
     if graphics && noGraphics {
@@ -690,6 +740,19 @@ struct Run: AsyncParsableCommand {
       return try Softnet(vmMACAddress: config.macAddress.string, extraArguments: ["--vm-net-type", "host"] + softnetExtraArguments)
     }
 
+    if netVmnet {
+      let vmnetConfig = try parsedVmnetConfig()!
+      let vmConfig = try VMConfig.init(fromURL: vmDir.configURL)
+
+      // Dependency handling: persist the network configuration before constructing
+      // NetworkVmnet (and therefore before "tart run" actually launches the VM), so that
+      // "tart ip" and any other out-of-process reader can find it as soon as the VM
+      // shows up as running, without a race against the write.
+      try VmnetPersistence.save(vmnetConfig, to: vmDir.vmnetConfigURL)
+
+      return try VmnetNetworkFactory.make(config: vmnetConfig, vmName: vmDir.name, macAddress: vmConfig.macAddress.string)
+    }
+
     if netBridged.count > 0 {
       func findBridgedInterface(_ name: String) throws -> VZBridgedNetworkInterface {
         let interface = VZBridgedNetworkInterface.networkInterfaces.first { interface in
@@ -706,6 +769,42 @@ struct Run: AsyncParsableCommand {
     }
 
     return nil
+  }
+
+  /// Parses the --net-vmnet-* flags into a `VmnetConfig`, or nil if --net-vmnet wasn't
+  /// requested. Kept separate from validation so both `validate()` (which needs to fail
+  /// fast on a bad flag combination before anything else runs) and
+  /// `userSpecifiedNetwork(vmDir:)` (which needs the actual value) can share one parser.
+  func parsedVmnetConfig() throws -> VmnetConfig? {
+    guard netVmnet else { return nil }
+
+    let subnet: CIDRBlock?
+    if let raw = netVmnetSubnet {
+      guard let parsed = CIDRBlock(raw) else {
+        throw ValidationError(VmnetError.invalidCIDR(raw: raw).description)
+      }
+      subnet = parsed
+    } else {
+      subnet = nil
+    }
+
+    let reservations: [Reservation] = try netVmnetReserve.map { raw in
+      let parts = raw.split(separator: "=", maxSplits: 1)
+      guard parts.count == 2 else {
+        throw ValidationError("invalid --net-vmnet-reserve syntax \"\(raw)\", expected mac=ip (e.g. 52:54:00:11:22:33=192.168.64.10)")
+      }
+      return Reservation(macAddress: String(parts[0]), ipAddress: String(parts[1]))
+    }
+
+    return VmnetConfig(
+      topology: netVmnetBridge != nil ? .bridged : .shared,
+      subnet: subnet,
+      dhcpEnabled: !netVmnetNoDHCP,
+      natEnabled: !netVmnetNoNAT,
+      dnsEnabled: !netVmnetNoDNS,
+      externalInterface: netVmnetBridge,
+      reservations: reservations
+    )
   }
 
   func bridgeInterfaces() -> [String] {
